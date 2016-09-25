@@ -23,7 +23,7 @@ public class Calculate {
 			// 1.扫描表达式，若有函数，替换对应表达式
 			// replaceFun(expression);
 			// 2. 将所有负数替换为0-x
-			replaceNegative(expression);
+			expression = replaceNegative(expression);
 			// 2.计算表达式
 			expression = count(expression);
 			// 3.返回结果
@@ -31,10 +31,6 @@ public class Calculate {
 		}
 
 		return new String("表达式有误！");
-	}
-
-	private void replaceNegative(String expression) {
-
 	}
 
 	private String count(String expression) {
@@ -49,73 +45,57 @@ public class Calculate {
 
 	private String count() {
 
-		String sTemp = null;
-		Float nTemp = 0f;
+		Float temp = new Float(0);
+		result.push(numbers.pop());
 
-		int i = 0;
-
-		while (!operate.isEmpty()) {
-			sTemp = operate.peek();
-			nTemp = numbers.peek();
-			if (sTemp.equals("(") && i == 0) {
+		while (!operate.peek().equals("#")) {
+			if (ope.isEmpty() || operate.peek().equals("(")) {
 				ope.push(operate.pop());
-				sTemp = operate.peek();
-				result.push(numbers.pop());
-				nTemp = numbers.peek();
-			}
-
-			if (sTemp.equals("(") || ope.isEmpty()) {
-				ope.push(operate.pop());
-				result.push(numbers.pop());
-			} else if (sTemp.equals(")")) {
-				while (!ope.peek().equals("(")) {
-					nTemp = count(result.pop(), result.pop(), ope.pop());
-					result.push(nTemp);
+				if (!numbers.isEmpty()) {
+					result.push(numbers.pop());
 				}
-				// nTemp = count(result.pop(), result.pop(), ope.pop());
-				// result.push(nTemp);
+			} else if (operate.peek().equals("*") || operate.peek().equals("/")) {
+				if (ope.peek().equals("*") || ope.peek().equals("/")) {
+					temp = count(result.pop(), result.pop(), ope.pop());
+					result.push(temp);
+				} else {
+					ope.push(operate.pop());
+					if (!numbers.isEmpty()) {
+						result.push(numbers.pop());
+					}
+				}
+			} else if (operate.peek().equals("+") || operate.peek().equals("-")) {
+				if (!ope.peek().equals("(")) {
+					temp = count(result.pop(), result.pop(), ope.pop());
+					result.push(temp);
+				} else {
+					ope.push(operate.pop());
+					if (!numbers.isEmpty()) {
+						result.push(numbers.pop());
+					}
+				}
+			} else if (operate.peek().equals(")")) {
+				while (!ope.peek().equals("(")) {
+
+					temp = count(result.pop(), result.pop(), ope.pop());
+					result.push(temp);
+				}
 				ope.pop();
 				operate.pop();
-			} else if (sTemp.equals("*")) {
-				if (ope.peek().equals("/") || ope.peek().equals("*")) {
-					nTemp = count(result.pop(), result.pop(), ope.pop());
-					result.push(nTemp);
-				} else {
-					ope.push(operate.pop());
-					result.push(numbers.pop());
-				}
-			} else if (sTemp.equals("/")) {
-				if (ope.peek().equals("/") || ope.peek().equals("*")) {
-					nTemp = count(result.pop(), result.pop(), ope.pop());
-					result.push(nTemp);
-				} else {
-					ope.push(operate.pop());
-					result.push(numbers.pop());
-				}
-			} else if (sTemp.equals("+")) {
-				if (ope.peek().equals("(")) {
-					ope.push(operate.pop());
-					result.push(numbers.pop());
-				} else {
-					nTemp = count(result.pop(), result.pop(), ope.pop());
-					result.push(nTemp);
-				}
-			} else if (sTemp.equals("-")) {
-				if (ope.peek().equals("(")) {
-					ope.push(operate.pop());
-					result.push(numbers.pop());
-				} else {
-					nTemp = count(result.pop(), result.pop(), ope.pop());
-					result.push(nTemp);
-				}
-			} else if (sTemp.equals("#")) {
-				operate.clear();
-				nTemp = count(result.pop(), result.pop(), ope.pop());	
-				result.push(nTemp);
 			}
 		}
-		
+
+		while (!ope.isEmpty()) {
+			if (result.size() == 1) {
+				temp = count(result.pop(), 0f, ope.pop());
+			} else {
+				temp = count(result.pop(), result.pop(), ope.pop());
+			}
+			result.push(temp);
+		}
+
 		return Float.toString(result.pop());
+
 	}
 
 	private Float count(Float op2, Float op1, String temp) {
@@ -168,10 +148,22 @@ public class Calculate {
 		operate.add("#");
 	}
 
-	// private void replaceFun(String expression) {
-	// // TODO Auto-generated method stub
-	//
-	// }
+	public String replaceNegative(String expression) {
+		Pattern p = Pattern.compile("\\D{1,1}-");
+		StringBuffer stringBuffer = new StringBuffer(expression);
+		Matcher matcher = p.matcher(stringBuffer);
+		while (matcher.find()) {
+			int start = matcher.start() + 1;
+			stringBuffer = stringBuffer.insert(start, "0");
+			matcher = p.matcher(stringBuffer);
+		}
+		return stringBuffer.toString();
+	}
+
+	private void replaceFun(String expression) {
+		// TODO Auto-generated method stub
+
+	}
 
 	public Calculate() {
 		numbers = new LinkedList<>();
