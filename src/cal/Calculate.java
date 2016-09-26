@@ -22,9 +22,10 @@ public class Calculate {
 		if (!expression.equals("") && expression != null) {
 			// 1.扫描表达式，若有函数，替换对应表达式
 			// replaceFun(expression);
-			// 2. 将所有负数替换为0-x
-			expression = replaceNegative(expression);
-			// 2.计算表达式
+
+			// 2.预处理表达式
+			expression = formatExp(expression);
+			// 3.计算表达式
 			expression = count(expression);
 			// 3.返回结果
 			return expression;
@@ -45,11 +46,23 @@ public class Calculate {
 
 	private String count() {
 
+
 		Float temp = new Float(0);
 		result.push(numbers.pop());
 
 		while (!operate.peek().equals("#")) {
-			if (ope.isEmpty() || operate.peek().equals("(")) {
+			if (ope.isEmpty()) {
+				while (operate.peek().equals("(")) {
+					ope.push(operate.pop());
+				}
+				ope.push(operate.pop());
+				if (!numbers.isEmpty()) {
+					result.push(numbers.pop());
+				}
+			} else if (operate.peek().equals("(")) {
+				while (operate.peek().equals("(")) {
+					ope.push(operate.pop());
+				}
 				ope.push(operate.pop());
 				if (!numbers.isEmpty()) {
 					result.push(numbers.pop());
@@ -120,13 +133,32 @@ public class Calculate {
 	}
 
 	private void fillNumber(String expression) {
-		expression = expression.replace("+", " ");
-		expression = expression.replace("-", " ");
-		expression = expression.replace("*", " ");
-		expression = expression.replace("/", " ");
-		expression = expression.replace("(", " ");
-		expression = expression.replace(")", " ");
-		String[] strings = expression.split(" ");
+		
+		Pattern pattern = null;
+		Matcher matcher = null;
+		
+		pattern = Pattern.compile("\\.");
+		matcher = pattern.matcher(expression);
+		while (matcher.find()) {
+			expression = matcher.replaceAll("b");
+		}
+		pattern = Pattern.compile("\\W");
+		matcher = pattern.matcher(expression);
+		while (matcher.find()) {
+			expression = matcher.replaceAll("a");
+		}
+		pattern = Pattern.compile("b");
+		matcher = pattern.matcher(expression);
+		while (matcher.find()) {
+			expression = matcher.replaceAll("\\.");
+		}
+//		expression = expression.replaceAll("+", " ");
+//		expression = expression.replaceAll("-", " ");
+//		expression = expression.replaceAll("*", " ");
+//		expression = expression.replaceAll("/", " ");
+//		expression = expression.replaceAll("(", " ");
+//		expression = expression.replaceAll(")", " ");
+		String[] strings = expression.split("a");
 		Float f = null;
 		for (String string : strings) {
 			if (!string.trim().equals("")) {
@@ -148,16 +180,105 @@ public class Calculate {
 		operate.add("#");
 	}
 
-	public String replaceNegative(String expression) {
-		Pattern p = Pattern.compile("\\D{1,1}-");
-		StringBuffer stringBuffer = new StringBuffer(expression);
-		Matcher matcher = p.matcher(stringBuffer);
-		while (matcher.find()) {
-			int start = matcher.start() + 1;
-			stringBuffer = stringBuffer.insert(start, "0");
-			matcher = p.matcher(stringBuffer);
+	public String formatExp(String expression) {
+
+		Pattern pattern = null;
+		Matcher matcher = null;
+		StringBuffer sBuffer = null;
+
+		sBuffer = new StringBuffer(expression);
+		int k = 0;
+		
+		if (sBuffer.charAt(0) == '-') {
+			pattern = Pattern.compile("\\-[0-9]+([.]{1}[0-9]+){0,1}");
+			matcher = pattern.matcher(sBuffer);
+			matcher.find();
+			int i = matcher.start();
+			int j = matcher.end() + 2;
+			sBuffer = sBuffer.insert(i, "(0", 0, 2);
+			sBuffer = sBuffer.insert(j, ")", 0, 1);
+			matcher = pattern.matcher(sBuffer);
 		}
-		return stringBuffer.toString();
+		
+		// +-
+		pattern = Pattern.compile("\\+\\-[0-9]+([.]{1}[0-9]+){0,1}");
+		matcher = pattern.matcher(sBuffer);
+		while (matcher.find(k)) {
+			int i = matcher.start() + 1;
+			int j = matcher.end() + 2;
+			k = j + 1;
+			sBuffer = sBuffer.insert(i, "(0", 0, 2);
+			sBuffer = sBuffer.insert(j, ")", 0, 1);
+			if (sBuffer.charAt(i - 1) >= '0' && sBuffer.charAt(i - 1) <= '9') {
+				sBuffer = sBuffer.insert(i, "-", 0, 1);
+			}
+			
+		}
+
+		// --
+		pattern = Pattern.compile("\\-\\-[0-9]+([.]{1}[0-9]+){0,1}");
+		matcher = pattern.matcher(sBuffer);
+		k = 0;
+		while (matcher.find(k)) {
+			int i = matcher.start() + 1;
+			int j = matcher.end() + 2;
+			k = j + 1;
+			sBuffer = sBuffer.insert(i, "(0", 0, 2);
+			sBuffer = sBuffer.insert(j, ")", 0, 1);
+			if (sBuffer.charAt(i - 1) >= '0' && sBuffer.charAt(i - 1) <= '9') {
+				sBuffer = sBuffer.insert(i, "-", 0, 1);
+			}
+			matcher = pattern.matcher(sBuffer);
+		}
+
+		// *-
+		pattern = Pattern.compile("\\*\\-[0-9]+([.]{1}[0-9]+){0,1}");
+		matcher = pattern.matcher(sBuffer);
+		k = 0;
+		while (matcher.find(k)) {
+			int i = matcher.start() + 1;
+			int j = matcher.end() + 2;
+			k = j + 1;
+			sBuffer = sBuffer.insert(i, "(0", 0, 2);
+			sBuffer = sBuffer.insert(j, ")", 0, 1);
+			if (sBuffer.charAt(i - 1) >= '0' && sBuffer.charAt(i - 1) <= '9') {
+				sBuffer = sBuffer.insert(i, "-", 0, 1);
+			}
+			matcher = pattern.matcher(sBuffer);
+		}
+
+		// /-
+		pattern = Pattern.compile("\\/\\-[0-9]+([.]{1}[0-9]+){0,1}");
+		matcher = pattern.matcher(sBuffer);
+		k = 0;
+		while (matcher.find(k)) {
+			int i = matcher.start() + 1;
+			int j = matcher.end() + 2;
+			k = j + 1;
+			sBuffer = sBuffer.insert(i, "(0", 0, 2);
+			sBuffer = sBuffer.insert(j, ")", 0, 1);
+			if (sBuffer.charAt(i - 1) >= '0' && sBuffer.charAt(i - 1) <= '9') {
+				sBuffer = sBuffer.insert(i, "-", 0, 1);
+			}
+			matcher = pattern.matcher(sBuffer);
+		}
+		// (-
+		pattern = Pattern.compile("\\(\\-[0-9]+([.]{1}[0-9]+){0,1}");
+		matcher = pattern.matcher(sBuffer);
+		k = 0;
+		while (matcher.find(k)) {
+			int i = matcher.start() + 1;
+			int j = matcher.end() + 2;
+			k = j + 1;
+			sBuffer = sBuffer.insert(i, "(0", 0, 2);
+			sBuffer = sBuffer.insert(j, ")", 0, 1);
+			if (sBuffer.charAt(i - 1) >= '0' && sBuffer.charAt(i - 1) <= '9') {
+				sBuffer = sBuffer.insert(i, "-", 0, 1);
+			}
+			matcher = pattern.matcher(sBuffer);
+		}
+
+		return sBuffer.toString();
 	}
 
 	private void replaceFun(String expression) {
