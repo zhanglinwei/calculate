@@ -1,15 +1,17 @@
 package cal;
 
+import java.math.BigDecimal;
 import java.util.LinkedList;
 import java.util.Stack;
+import java.util.Formatter.BigDecimalLayoutForm;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Calculate {
 
-	LinkedList<Float> numbers;
+	LinkedList<String> numbers;
 	LinkedList<String> operate;
-	Stack<Float> result = new Stack<>();
+	Stack<String> result = new Stack<>();
 	Stack<String> ope = new Stack<>();
 
 	/**
@@ -47,7 +49,7 @@ public class Calculate {
 	private String count() {
 
 
-		Float temp = new Float(0);
+		String temp = "0";
 		result.push(numbers.pop());
 
 		while (!operate.peek().equals("#")) {
@@ -100,36 +102,38 @@ public class Calculate {
 
 		while (!ope.isEmpty()) {
 			if (result.size() == 1) {
-				temp = count(result.pop(), 0f, ope.pop());
+				temp = count(result.pop(), "0", ope.pop());
 			} else {
 				temp = count(result.pop(), result.pop(), ope.pop());
 			}
 			result.push(temp);
 		}
 
-		return Float.toString(result.pop());
+		return result.pop();
 
 	}
 
-	private Float count(Float op2, Float op1, String temp) {
-		Float float1 = 0f;
+	private String count(String str2, String str1, String temp) {
+		BigDecimal res = new BigDecimal("0");
+		BigDecimal op1 = new BigDecimal(str1);
+		BigDecimal op2 = new BigDecimal(str2);
 		switch (temp) {
 		case "+":
-			float1 = op1 + op2;
+			res = op1.add(op2);
 			break;
 		case "-":
-			float1 = op1 - op2;
+			res = op1.subtract(op2);
 			break;
 		case "*":
-			float1 = op1 * op2;
+			res = op1.multiply(op2);
 			break;
 		case "/":
-			float1 = op1 / op2;
+			res = op1.divide(op2);
 			break;
 		default:
 			break;
 		}
-		return float1;
+		return res.toString();
 	}
 
 	private void fillNumber(String expression) {
@@ -159,11 +163,9 @@ public class Calculate {
 //		expression = expression.replaceAll("(", " ");
 //		expression = expression.replaceAll(")", " ");
 		String[] strings = expression.split("a");
-		Float f = null;
 		for (String string : strings) {
 			if (!string.trim().equals("")) {
-				f = Float.valueOf(string);
-				numbers.add(f);
+				numbers.add(string);
 			}
 		}
 	}
@@ -290,5 +292,6 @@ public class Calculate {
 		numbers = new LinkedList<>();
 		operate = new LinkedList<>();
 	}
+	
 
 }

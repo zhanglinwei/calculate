@@ -50,8 +50,12 @@ public class Client extends JFrame {
 					Calculate calculate = new Calculate();
 					String expression = show.getText();
 					String result = calculate.calculate(expression);
+					System.out.println(result);
+					Float float1 = Float.valueOf(result);
+					result = float1.toString();
 					// show显示结果
 					show.setText(result);
+					System.out.println(result);
 				}
 			}
 		});
