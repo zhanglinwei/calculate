@@ -1,9 +1,9 @@
 package Exception;
 
-public class ErrorInputException extends Exception {
+public class EmptyInputException extends Exception {
 	private static final long serialVersionUID = 1L;
 	
-	public ErrorInputException(String msg) {
+	public EmptyInputException(String msg) {
 		super(msg);
 	}
 	

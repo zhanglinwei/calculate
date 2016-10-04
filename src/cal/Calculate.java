@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 import javax.swing.JTextField;
 
-import Exception.ErrorInputException;
+import Exception.EmptyInputException;
 
 public class Calculate implements Runnable {
 
@@ -33,46 +33,37 @@ public class Calculate implements Runnable {
 
 	@Override
 	public void run() {
-		// 处理表达式
 		try {
+			// 处理表达式
 			formatExp(expression);
-		} catch (ErrorInputException e) {
-			Thread.interrupted();
+			// 计算表达式的值
+			BigDecimal result = calculate(expression);
+			float f = result.floatValue();
+			String string = String.valueOf(f);
+			// 将结果显示在jTextFiled中
+			jTextField.setText(string);
+		} catch (EmptyInputException e) {
+			jTextField.setText(e.getMessage());
+		} catch (Exception e) {
+			jTextField.setText("请检查表达式！表达式中可能含有特殊字符！");
 		}
 
-		// 计算表达式的值
-		BigDecimal result = calculate(expression);
-
-		// 将结果显示在jTextFiled中
-		jTextField.setText(result.toString());
 	}
 
-	/*
-	 * 处理表达式，使之可以用于计算
-	 */
-	public void formatExp(String expression) throws ErrorInputException {
-
-		// 1.检查是否还有非法输入。
+	// 处理表达式，使之可以用于计算,只做简单的错误处理。
+	// 保证将字符串转换为可计算的格式，若程序出错，则证明字符串有错误输入。
+	// 捕获并抛出，交给用户去检查字符串的正误
+	public void formatExp(String expression) throws EmptyInputException {
+		// 1.字符串预处理（保证不为空串或包含回车换行）
 		// 若有，则 thorw ErrorInputException
-		// 非法输入：null、空字符串、空格、非法字符（除 ( ) A-Z a-z 0-9 . + - * / 外的字
-		// 符为非法字符）
-		checkErrorInput(expression);
-
-		// 2.判断表达式是否有错
-		// 含有连个连续符号,且不为(_、_-、_+
-		// 小数，多个小数点
-
-		// 3.替换函数
+		checkExp(expression);
+		// 2.替换函数
 		replaceFun(expression);
-
 		// 4.处理负数
 		dealNegive(expression);
-
 	}
 
-	/*
-	 * 将表达式中的负数变为运算表达式 例如：-2 -> (0-2)
-	 */
+	// 将表达式中的负数变为运算表达式 例如：-2 -> (0-2)
 	private void dealNegive(String expression) {
 		Pattern pattern = null;
 		StringBuffer sBuffer = new StringBuffer(expression);
@@ -93,20 +84,26 @@ public class Calculate implements Runnable {
 		sBuffer = addBrackets(pattern, sBuffer);
 	}
 
-	private void checkErrorInput(String expression) throws ErrorInputException {
+	// 保证字符串不为NULL或空串，或包含回车换行
+	private void checkExp(String expression) throws EmptyInputException {
 		// 非法输入：null、空字符串、空格、非法字符
 		// 除 ( ) A-Z a-z 0-9 . + - * / 外的字符为非法字符）
 		if (expression == null) {
-			throw new ErrorInputException("输入为NULL");
+			throw new EmptyInputException("输入为NULL");
 		}
 		if (expression.equals("")) {
-			throw new ErrorInputException("输入为空");
+			throw new EmptyInputException("输入为空");
 		}
 		if (expression.equals(" ")) {
-			throw new ErrorInputException("输入为空格");
+			throw new EmptyInputException("输入为空格");
 		}
+		if (expression.contains("\r\n") || expression.contains("\n")) {
+			throw new EmptyInputException("表达式中不能保护回车、换行等特殊字符！");
+		}
+
 	}
 
+	// 加括号
 	private StringBuffer addBrackets(Pattern pattern, StringBuffer sBuffer) {
 		Matcher matcher;
 		int k = 0;
@@ -130,9 +127,7 @@ public class Calculate implements Runnable {
 
 	}
 
-	/*
-	 * 计算表达式的值
-	 */
+	// 计算表达式的值
 	public BigDecimal calculate(String expression) {
 		// 1. 将运算符装入 operate
 		fillOperater(expression);
@@ -143,75 +138,94 @@ public class Calculate implements Runnable {
 		return result;
 	}
 
+	// 将操作符与操作数队列全部计算完毕
 	private BigDecimal countAll() {
 
-		BigDecimal temp = new BigDecimal(0);
-		result.push(numbers.pop());
+		// 1. 先入栈一个操作数
+		pushNumber();
 
-		while (!operate.peek().equals("#")) {
-			if (ope.isEmpty()) {
-				while (operate.peek().equals("(")) {
-					ope.push(operate.pop());
-				}
-				ope.push(operate.pop());
-				if (!numbers.isEmpty()) {
-					result.push(numbers.pop());
-				}
-			} else if (operate.peek().equals("(")) {
-				while (operate.peek().equals("(")) {
-					ope.push(operate.pop());
-				}
-				ope.push(operate.pop());
-				if (!numbers.isEmpty()) {
-					result.push(numbers.pop());
-				}
-			} else if (operate.peek().equals("*") || operate.peek().equals("/")) {
-				if (ope.peek().equals("*") || ope.peek().equals("/")) {
-					temp = count(result.pop(), result.pop(), ope.pop());
-					result.push(temp);
-				} else {
-					ope.push(operate.pop());
-					if (!numbers.isEmpty()) {
-						result.push(numbers.pop());
-					}
-				}
-			} else if (operate.peek().equals("+") || operate.peek().equals("-")) {
-				if (!ope.peek().equals("(")) {
-					temp = count(result.pop(), result.pop(), ope.pop());
-					result.push(temp);
-				} else {
-					ope.push(operate.pop());
-					if (!numbers.isEmpty()) {
-						result.push(numbers.pop());
-					}
-				}
-			} else if (operate.peek().equals(")")) {
+		// 2. 比较栈顶、队列头操作符的优先级
+		// 如果队列头高于栈顶，操作符入栈，操作数入栈
+		// 否则，计算站内元素
+		while (!operate.isEmpty()) {
+			if (operate.peek().equals(")")) {
 				while (!ope.peek().equals("(")) {
-
-					temp = count(result.pop(), result.pop(), ope.pop());
+					BigDecimal temp = count(result.pop(), result.pop(), ope.pop());
 					result.push(temp);
 				}
 				ope.pop();
 				operate.pop();
+			} else if (isOutHigh()) {
+				pushNumber();
+				pushOpe();
+			} else {
+				count();
 			}
 		}
 
 		while (!ope.isEmpty()) {
-			if (result.size() == 1) {
-				temp = count(result.pop(), new BigDecimal(0), ope.pop());
-			} else {
-				temp = count(result.pop(), result.pop(), ope.pop());
-			}
-			result.push(temp);
+			count();
 		}
 
 		return result.pop();
 
 	}
 
-	private BigDecimal count(BigDecimal op2, BigDecimal op1, String temp) {
-		BigDecimal res = new BigDecimal(0);
-		switch (temp) {
+	private void count() {
+		BigDecimal temp = null;
+
+		if (result.size() == 1) {
+			temp = count(popNumber(), new BigDecimal(0), ope.pop());
+		} else {
+			temp = count(popNumber(), popNumber(), ope.pop());
+		}
+
+		if (temp != null) {
+			result.push(temp);
+		}
+	}
+
+	private boolean isOutHigh() {
+		if (ope.isEmpty() || ope.peek().equals("(") || operate.peek().equals("(")) {
+			return true;
+		} else if (ope.peek().equals("*") || ope.peek().equals("/")) {
+			if (operate.peek().equals("(")) {
+				return true;
+			}
+		} else if (ope.peek().equals("+") || ope.peek().equals("-")) {
+			if (operate.peek().equals("*") || operate.peek().equals("/")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// 操作符入栈
+	private void pushOpe() {
+		if (ope.isEmpty() || operate.peek().equals("(")) {
+			while (operate.peek().equals("(")) {
+				ope.push(operate.pop());
+			}
+		}
+		ope.push(operate.pop());
+	}
+
+	// 操作数入栈
+	private void pushNumber() {
+		if (!numbers.isEmpty()) {
+			result.push(numbers.pop());
+		}
+	}
+
+	// 取出栈顶数字
+	private BigDecimal popNumber() {
+		return result.pop();
+	}
+
+	// 根据符号来计算结果
+	private BigDecimal count(BigDecimal op2, BigDecimal op1, String symbol) {
+		BigDecimal res = null;
+		switch (symbol) {
 		case "+":
 			res = op1.add(op2);
 			break;
@@ -254,7 +268,7 @@ public class Calculate implements Runnable {
 			}
 			operate.add(m.group());
 		}
-		operate.add("#");
+		// operate.add("#");
 	}
 
 }
