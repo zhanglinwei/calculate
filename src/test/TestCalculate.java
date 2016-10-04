@@ -1,45 +1,41 @@
 package test;
 
-import java.math.BigDecimal;
-
-import javax.print.DocFlavor.STRING;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.junit.validator.PublicClassValidator;
 
+import Exception.ErrorInputException;
 import cal.Calculate;
 
 public class TestCalculate {
-
-	Calculate cal = new Calculate();
+	
+	Calculate calculate = new Calculate();
 
 	@Test
-	public void testFormatExp() {
-		String exp = "1.6--1--2--3*-4*-5*-6";
-		exp = cal.formatExp(exp);
-		
-		
-		
-		exp = exp.replaceAll("\\+", " ");
-		exp = exp.replaceAll("\\-", " ");
-		exp = exp.replaceAll("\\*", " ");
-		exp = exp.replaceAll("\\/", " ");
-		exp = exp.replaceAll("\\(", " ");
-		exp = exp.replaceAll("\\)", " ");
-		
-		String[] strings = exp.split(" ");
-		
-		System.out.println(exp);
+	public void testCalculate() {
+		fail("Not yet implemented");
+	}
 
-		for (int i = 0; i < strings.length; i++) {
-			System.out.println(strings[i]);
-		}
-		
-		
-		BigDecimal op1 = new BigDecimal("21.6");
-		BigDecimal op2 = new BigDecimal("0.18");
+	@Test
+	public void testCalculateJTextFieldString() {
+		fail("Not yet implemented");
+	}
+
+	@Test
+	public void testRun() {
+		fail("Not yet implemented");
+	}
+
+	@Test
+	public void testFormatExp() throws ErrorInputException {
+		String string = "1+2*3@";
+		calculate.formatExp(string);
 		
 	}
-	
-	
+
+	@Test
+	public void testCalculate1() {
+		fail("Not yet implemented");
+	}
+
 }
