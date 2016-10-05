@@ -17,7 +17,7 @@ public class Client extends JFrame {
 	private static final int WIDTH = 400;
 	private static final int HEIGHT = 247;
 
-	private JPanel defaultPanel;
+	private DefaultPanel defaultPanel;
 	
 	public Client() {
 		defaultPanel = new DefaultPanel();
@@ -31,6 +31,7 @@ public class Client extends JFrame {
 		setResizable(false);
 		setLocationRelativeTo(null);
 		add(defaultPanel);
+		defaultPanel.launch();
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setVisible(true);
 	}

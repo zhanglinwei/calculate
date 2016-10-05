@@ -13,6 +13,9 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import cal.Calculate;
+import cal.Fun;
+import dialog.AddFunDialog;
+import dialog.DelFunDialog;
 
 public class DefaultPanel extends JPanel {
 
@@ -27,10 +30,9 @@ public class DefaultPanel extends JPanel {
 	private JButton addFunction;
 	// 删除函数按钮
 	private JButton delFunction;
-
+	
 	public DefaultPanel() {
 		init();
-		launch();
 	}
 
 	// 设置 DefaultPanel 显示
@@ -62,7 +64,7 @@ public class DefaultPanel extends JPanel {
 	}
 
 	// 为各个组件添加监听，实现功能
-	private void launch() {
+	public void launch() {
 		registerAddFun();
 		registerDelFun();
 		registerExpArea();
@@ -104,12 +106,20 @@ public class DefaultPanel extends JPanel {
 		addFunction.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				// addFun();
+				AddFunDialog add = new AddFunDialog(funArea);
+				add.launch();
 			}
 		});
 	}
 
 	private void registerDelFun() {
+		delFunction.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				new DelFunDialog();
+			}
+		});
+
 	}
 
 }
