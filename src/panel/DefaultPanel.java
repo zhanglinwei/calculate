@@ -16,6 +16,7 @@ import cal.Calculate;
 import cal.Fun;
 import dialog.AddFunDialog;
 import dialog.DelFunDialog;
+import util.PropertiesUtil;
 
 public class DefaultPanel extends JPanel {
 
@@ -65,6 +66,8 @@ public class DefaultPanel extends JPanel {
 
 	// 为各个组件添加监听，实现功能
 	public void launch() {
+		PropertiesUtil.read();
+		PropertiesUtil.showFunctions(funArea);
 		registerAddFun();
 		registerDelFun();
 		registerExpArea();

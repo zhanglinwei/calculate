@@ -1,9 +1,13 @@
 package client;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import panel.DefaultPanel;
+import util.PropertiesUtil;
 
 /**
  * 客户端实体类
@@ -30,6 +34,12 @@ public class Client extends JFrame {
 		setSize(WIDTH, HEIGHT);
 		setResizable(false);
 		setLocationRelativeTo(null);
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				PropertiesUtil.store();
+			}
+		});
 		add(defaultPanel);
 		defaultPanel.launch();
 		setDefaultCloseOperation(EXIT_ON_CLOSE);

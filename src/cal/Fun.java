@@ -26,8 +26,20 @@ public class Fun {
 	}
 
 	
+	public void read(){
+		
+	}
 
+	public String getFunName() {
+		return funName;
+	}
 
+	public String getFunExp() {
+		return funExp;
+	}
 
+	public String getArgs() {
+		return args;
+	}
 	
 }
