@@ -2,7 +2,7 @@ package cal;
 
 import java.math.BigDecimal;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -165,11 +165,9 @@ public class Calculate implements Runnable {
 	}
 
 	private Fun getFun(String funName) throws NoSuchFunctionException {
-		List<Fun> funs = PropertiesUtil.funs;
-		for (Fun fun : funs) {
-			if (fun.getFunName().equals(funName)) {
-				return fun;
-			}
+		Map<String, Fun> funs = PropertiesUtil.funs;
+		if (funs.containsKey(funName)) {
+			return funs.get(funName);
 		}
 		throw new NoSuchFunctionException("此函数未定义！");
 	}
