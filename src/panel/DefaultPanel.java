@@ -13,7 +13,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import cal.Calculate;
-import cal.Fun;
 import dialog.AddFunDialog;
 import dialog.DelFunDialog;
 import util.PropertiesUtil;
@@ -119,7 +118,8 @@ public class DefaultPanel extends JPanel {
 		delFunction.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				new DelFunDialog();
+				DelFunDialog del = new DelFunDialog(funArea);
+				del.launch();
 			}
 		});
 

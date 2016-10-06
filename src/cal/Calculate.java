@@ -2,6 +2,7 @@ package cal;
 
 import java.math.BigDecimal;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -9,6 +10,8 @@ import java.util.regex.Pattern;
 import javax.swing.JTextField;
 
 import Exception.EmptyInputException;
+import Exception.NoSuchFunctionException;
+import util.PropertiesUtil;
 
 public class Calculate implements Runnable {
 
@@ -35,13 +38,15 @@ public class Calculate implements Runnable {
 	public void run() {
 		try {
 			// 处理表达式
-			formatExp(expression);
+			expression = formatExp(expression);
 			// 计算表达式的值
 			BigDecimal result = calculate(expression);
 			float f = result.floatValue();
 			String string = String.valueOf(f);
 			// 将结果显示在jTextFiled中
 			jTextField.setText(string);
+		} catch (NoSuchFunctionException e) {
+			jTextField.setText(e.getMessage());
 		} catch (EmptyInputException e) {
 			jTextField.setText(e.getMessage());
 		} catch (Exception e) {
@@ -53,18 +58,19 @@ public class Calculate implements Runnable {
 	// 处理表达式，使之可以用于计算,只做简单的错误处理。
 	// 保证将字符串转换为可计算的格式，若程序出错，则证明字符串有错误输入。
 	// 捕获并抛出，交给用户去检查字符串的正误
-	public void formatExp(String expression) throws EmptyInputException {
+	public String formatExp(String expression) throws EmptyInputException, NoSuchFunctionException {
 		// 1.字符串预处理（保证不为空串或包含回车换行）
 		// 若有，则 thorw ErrorInputException
 		checkExp(expression);
 		// 2.替换函数
-		replaceFun(expression);
+		expression = replaceFun(expression);
 		// 4.处理负数
-		dealNegive(expression);
+		expression = dealNegive(expression);
+		return expression;
 	}
 
 	// 将表达式中的负数变为运算表达式 例如：-2 -> (0-2)
-	private void dealNegive(String expression) {
+	private String dealNegive(String expression) {
 		Pattern pattern = null;
 		StringBuffer sBuffer = new StringBuffer(expression);
 		// +-
@@ -82,6 +88,8 @@ public class Calculate implements Runnable {
 		// (-
 		pattern = Pattern.compile("\\(\\-[0-9]+([.]{1}[0-9]+){0,1}");
 		sBuffer = addBrackets(pattern, sBuffer);
+
+		return sBuffer.toString();
 	}
 
 	// 保证字符串不为NULL或空串，或包含回车换行
@@ -122,9 +130,48 @@ public class Calculate implements Runnable {
 		return sBuffer;
 	}
 
-	private void replaceFun(String expression) {
-		// TODO Auto-generated method stub
+	private String replaceFun(String expression) throws NoSuchFunctionException {
+		Fun fun = null;
 
+		Pattern pattern = Pattern.compile("[a-zA-Z]+\\(.+\\)");
+		Matcher matcher = pattern.matcher(expression);
+		while (matcher.find()) {
+			String temp = matcher.group();
+			String funName = parseFunName(temp);
+			String[] args = parseArgs(matcher.group());
+			fun = getFun(funName);
+			String funExp = "(";
+			funExp += fun.transform(args);
+			funExp += ")";
+			temp = funName + "\\(.+\\)";
+			expression = expression.replaceAll(temp, funExp);
+			matcher = pattern.matcher(expression);
+		}
+		return expression;
+
+	}
+
+	private String[] parseArgs(String string) {
+		int i = string.indexOf("(");
+		string = string.substring(i + 1, string.length() - 1);
+		String[] args = string.split(",");
+		return args;
+	}
+
+	private String parseFunName(String string) {
+		int i = string.indexOf("(");
+		string = string.substring(0, i);
+		return string;
+	}
+
+	private Fun getFun(String funName) throws NoSuchFunctionException {
+		List<Fun> funs = PropertiesUtil.funs;
+		for (Fun fun : funs) {
+			if (fun.getFunName().equals(funName)) {
+				return fun;
+			}
+		}
+		throw new NoSuchFunctionException("此函数未定义！");
 	}
 
 	// 计算表达式的值

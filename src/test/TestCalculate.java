@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import Exception.EmptyInputException;
+import Exception.NoSuchFunctionException;
 import cal.Calculate;
 
 public class TestCalculate {
@@ -27,7 +28,7 @@ public class TestCalculate {
 	}
 
 	@Test
-	public void testFormatExp() throws EmptyInputException {
+	public void testFormatExp() throws EmptyInputException, NoSuchFunctionException {
 		String string = "1+2*3@";
 		calculate.formatExp(string);
 		

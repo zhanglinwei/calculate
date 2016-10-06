@@ -5,6 +5,7 @@ public class Fun {
 	private String funExp;
 	private String expression;
 	private String args;
+	private String[] arg;
 
 	public Fun(String funName, String funExp, String args) {
 		super();
@@ -19,15 +20,15 @@ public class Fun {
 		temp.append(funExp);
 		temp.append("\n");
 		expression = temp.toString();
+		arg = args.split(",");
 	}
 
 	public String getExpression() {
 		return expression;
 	}
 
-	
-	public void read(){
-		
+	public void read() {
+
 	}
 
 	public String getFunName() {
@@ -41,5 +42,13 @@ public class Fun {
 	public String getArgs() {
 		return args;
 	}
-	
+
+	public String transform(String[] args){
+		String temp = new String(funExp);
+		for (int i = 0; i < args.length; i++) {
+			temp = temp.replaceAll(arg[i], args[i]);
+		}
+		return temp;
+	}
+
 }
